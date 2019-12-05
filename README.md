@@ -4,7 +4,7 @@
 
 In the app1 & app2 update the required configuration:
 
-application.yml
+# application.yml
 
   oauth2:
     client:
