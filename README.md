@@ -1,10 +1,10 @@
 # Spring Boot : Single Sign-on 
 
-# What to configure?
+### What to configure?
 
 In the app1 & app2 update the required configuration:
 
-# application.yml
+##### application.yml
 
   oauth2:
     client:
@@ -15,7 +15,7 @@ In the app1 & app2 update the required configuration:
     resource:
       userInfoUri: http://localhost:8080/sso-server/user/me
 
-# How to run?
+###  How to run?
 
 Step 1) Start/Run the app1 (App1Application.java)
 
