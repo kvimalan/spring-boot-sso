@@ -30,6 +30,8 @@ Step 4) Open the browser and point it to - http://localhost:8081/app1
          
 Step 5) Open the browser(new tab) and point it to - http://localhost:8082/app2
            - User would be automatically logged in with asking for credentials - That's SSO for you.
+           
+Step 6) To access database :http://localhost:8080/sso-server/console
          
 
 
