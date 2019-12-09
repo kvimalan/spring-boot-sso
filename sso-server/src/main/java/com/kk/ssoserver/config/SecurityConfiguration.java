@@ -1,5 +1,7 @@
 package com.kk.ssoserver.config;
 
+import org.h2.server.web.WebServlet;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -36,14 +38,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .requestMatchers().antMatchers("/mgmt/health", "/stp-localization/**", "/login", "/verifyUser", "/adminlogin", "/resetPassword", "/action/forgotPassword",
                 "/oauth/authorize", "/i18n/**", "/translations/**", "/oauth/confirm_access", "/login/**", "/env/**", "/metrics/**", "/signup", "/swagger-ui.html" ,"/swagger-resources/**", "/v2/api-docs",
-                "/users/resetPassword", "/users/customer","/users/verifyUser","/tokens/search/**", "/h2", "/h2/**", "/login.html/**")
+                "/users/resetPassword", "/users/customer","/users/verifyUser","/tokens/search/**", "/console/**", "/login.html/**")
                 .and()
                 .authorizeRequests().antMatchers("/mgmt/health","/stp-localization/**", "/verifyUser", "/resetPassword", "/action/forgotPassword", "/signup", "/i18n/**",
-                "/translations/**", "/users/resetPassword", "/users/customer", "/users/verifyUser", "/login", "/swagger-ui.html" ,"/swagger-resources/**", "/v2/api-docs", "/tokens/search/**").permitAll().anyRequest().authenticated()
+                "/translations/**", "/users/resetPassword", "/users/customer", "/users/verifyUser", "/login", "/swagger-ui.html" ,"/swagger-resources/**", "/v2/api-docs", "/tokens/search/**", "/console/**").permitAll().anyRequest().authenticated()
                 .and().csrf()
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .ignoringAntMatchers("/users/customer")
                 .ignoringAntMatchers("/action/forgotPassword");
+
+        http.csrf().disable();
+        http.headers().frameOptions().disable();
     }
 
 
@@ -85,5 +90,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public SimpleUrlAuthenticationFailureHandler authenticationFailureHandler(){
         return new CustomLoginAuthenticationFailureHandler();
+    }
+
+    @Bean
+    ServletRegistrationBean h2servletRegistration(){
+        ServletRegistrationBean registrationBean = new ServletRegistrationBean( new WebServlet());
+        registrationBean.addUrlMappings("/console/*");
+        return registrationBean;
     }
 }
