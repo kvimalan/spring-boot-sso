@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 /**
@@ -23,7 +24,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         http
                 .formLogin()
                 .loginPage("/login")
-                .failureHandler(new ExceptionMappingAuthenticationFailureHandler())
+                .failureHandler(authenticationFailureHandler())
                 .permitAll()
                 .and()
                 .logout()
@@ -35,7 +36,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .requestMatchers().antMatchers("/mgmt/health", "/stp-localization/**", "/login", "/verifyUser", "/adminlogin", "/resetPassword", "/action/forgotPassword",
                 "/oauth/authorize", "/i18n/**", "/translations/**", "/oauth/confirm_access", "/login/**", "/env/**", "/metrics/**", "/signup", "/swagger-ui.html" ,"/swagger-resources/**", "/v2/api-docs",
-                "/users/resetPassword", "/users/customer","/users/verifyUser","/tokens/search/**", "/h2", "/h2/**")
+                "/users/resetPassword", "/users/customer","/users/verifyUser","/tokens/search/**", "/h2", "/h2/**", "/login.html/**")
                 .and()
                 .authorizeRequests().antMatchers("/mgmt/health","/stp-localization/**", "/verifyUser", "/resetPassword", "/action/forgotPassword", "/signup", "/i18n/**",
                 "/translations/**", "/users/resetPassword", "/users/customer", "/users/verifyUser", "/login", "/swagger-ui.html" ,"/swagger-resources/**", "/v2/api-docs", "/tokens/search/**").permitAll().anyRequest().authenticated()
@@ -79,5 +80,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public LoginUrlAuthenticationEntryPoint loginUrlAuthenticationEntryPoint(){
         return new CustomLoginUrlAuthenticationEntryPoint("/login");
+    }
+
+    @Bean
+    public SimpleUrlAuthenticationFailureHandler authenticationFailureHandler(){
+        return new CustomLoginAuthenticationFailureHandler();
     }
 }
