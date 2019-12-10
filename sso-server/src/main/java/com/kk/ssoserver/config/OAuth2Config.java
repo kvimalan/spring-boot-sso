@@ -26,9 +26,9 @@ private AuthenticationManager authenticationManager;
                 .secret("secret")
                 .authorizedGrantTypes("authorization_code", "refresh_token", "password")
                 .scopes("user_info", "read", "write")
-                .redirectUris("http://localhost:8081/app1/login")
+            /*    .redirectUris("http://localhost:8081/app1/login") //This is not required as we overrided DefaultRedirectResolver in SecurityConfiguration.java
                 .redirectUris("http://localhost:8082/app2/login")
-                .autoApprove(true);
+         */       .autoApprove(true);
     }
 
     @Override
@@ -36,6 +36,7 @@ private AuthenticationManager authenticationManager;
         oauthServer
                 .tokenKeyAccess("permitAll()")
                 .checkTokenAccess("isAuthenticated()");
+
     }
 
     @Override

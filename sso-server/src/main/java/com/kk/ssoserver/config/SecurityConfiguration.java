@@ -1,6 +1,7 @@
 package com.kk.ssoserver.config;
 
 import org.h2.server.web.WebServlet;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,10 +9,16 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
+import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
+import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
+import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoint;
+import org.springframework.security.oauth2.provider.endpoint.DefaultRedirectResolver;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+
+import java.util.Set;
 
 /**
  * @author Kuriakose V
@@ -30,48 +37,21 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .and()
                 .logout()
-                /*   .invalidateHttpSession(true)
-                   .deleteCookies("JSESSIONID")
-               */    .permitAll()
+                .permitAll()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(loginUrlAuthenticationEntryPoint())
                 .and()
-                .requestMatchers().antMatchers("/mgmt/health", "/stp-localization/**", "/login", "/verifyUser", "/adminlogin", "/resetPassword", "/action/forgotPassword",
-                "/oauth/authorize", "/i18n/**", "/translations/**", "/oauth/confirm_access", "/login/**", "/env/**", "/metrics/**", "/signup", "/swagger-ui.html" ,"/swagger-resources/**", "/v2/api-docs",
-                "/users/resetPassword", "/users/customer","/users/verifyUser","/tokens/search/**", "/console/**", "/login.html/**")
+                .requestMatchers().antMatchers("/login", "/oauth/authorize", "/console/**", "/login.html/**")
                 .and()
-                .authorizeRequests().antMatchers("/mgmt/health","/stp-localization/**", "/verifyUser", "/resetPassword", "/action/forgotPassword", "/signup", "/i18n/**",
-                "/translations/**", "/users/resetPassword", "/users/customer", "/users/verifyUser", "/login", "/swagger-ui.html" ,"/swagger-resources/**", "/v2/api-docs", "/tokens/search/**", "/console/**").permitAll().anyRequest().authenticated()
+                .authorizeRequests().antMatchers("/login","/console/**").permitAll().anyRequest().authenticated()
                 .and().csrf()
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringAntMatchers("/users/customer")
-                .ignoringAntMatchers("/action/forgotPassword");
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
 
         http.csrf().disable();
         http.headers().frameOptions().disable();
+
     }
 
-
-/*    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-
-*//*        http.csrf().disable()
-                .authorizeRequests()
-                .antMatchers( "/home", "/about", "/login", "/oauth/authorize", "/h2").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .exceptionHandling().authenticationEntryPoint(loginUrlAuthenticationEntryPoint())
-                .and()
-                .formLogin()
-                .loginProcessingUrl("/login")
-                .permitAll()
-                .and()
-                .logout()
-                .permitAll();*//*
-
-        ;
-
-    }*/
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -79,6 +59,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .withUser("kk")
                 .password("kk")
                 .roles("USER", "ADMIN");
+
 
     }
 
@@ -98,4 +79,31 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         registrationBean.addUrlMappings("/console/*");
         return registrationBean;
     }
+
+
+    @Autowired
+    public void configureAuthorizationEndpoint(AuthorizationEndpoint authorizationEndpoint) {
+        DefaultRedirectResolver redirectResolver = new DefaultRedirectResolver() {
+
+            /**
+             *  Override to avoid validation against client registeredRedirect uri's
+             *
+             * @param requestedRedirect
+             * @param client
+             * @return
+             * @throws OAuth2Exception
+             */
+            @Override
+            public String resolveRedirect(String requestedRedirect, ClientDetails client) throws OAuth2Exception {
+                Set<String> authorizedGrantTypes = client.getAuthorizedGrantTypes();
+                if (authorizedGrantTypes.isEmpty()) {
+                    throw new InvalidGrantException("A client must have at least one authorized grant type.");
+                }
+                return requestedRedirect;
+            }
+        };
+        redirectResolver.setMatchPorts(false);
+        authorizationEndpoint.setRedirectResolver(redirectResolver);
+    }
+
 }
